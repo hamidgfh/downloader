@@ -35,15 +35,21 @@ jobs:
           FILE_PATH="$FOLDER/downloaded_file"
           SIZE_MB=$(du -m "$FILE_PATH" | cut -f1)
 
-          if [ "$SIZE_MB" -lt 95 ]; then
-            echo "File is ${SIZE_MB}MB (<95MB) – keeping as single file named after folder"
+          if [ "$SIZE_MB" -lt 50 ]; then
+            echo "File is ${SIZE_MB}MB (<50MB) – keeping as single file named after folder"
             mv "$FILE_PATH" "$FOLDER/$FOLDER"
           else
-            echo "File is ${SIZE_MB}MB (>=95MB) – splitting into 95MB chunks"
+            echo "File is ${SIZE_MB}MB (>=50MB) – splitting into 50MB chunks"
             mkdir -p "$FOLDER/chunks"
-            split -b 95M "$FILE_PATH" "$FOLDER/chunks/chunk_"
+            split -b 50M "$FILE_PATH" "$FOLDER/chunks/chunk_"
             rm "$FILE_PATH"
           fi
+
+      - name: Configure git for large push
+        run: |
+          git config http.postBuffer 524288000   # 500 MB buffer
+          git config http.lowSpeedLimit 0
+          git config http.lowSpeedTime 999999
 
       - name: Commit and push the new folder
         run: |
